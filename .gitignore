@@ -1,0 +1,35 @@
+# # Raw data — too large for GitHub, not needed once cleaned
+# data/raw/
+# *.csv.zip
+
+# # Python
+# __pycache__/
+# *.pyc
+# .venv/
+# venv/
+
+# # OS files
+# .DS_Store
+# Thumbs.db
+
+# # VS Code
+# .vscode/
+
+# All data — too large for GitHub, keep local only
+data/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
