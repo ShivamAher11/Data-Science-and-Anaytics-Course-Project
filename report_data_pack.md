@@ -185,7 +185,7 @@ Table 3.1: Cleaning lifecycle. Source: data/processed/cleaning_report.txt; count
 
 **Not imputed:** missing rating outcomes, entirely absent host tenure/licence/response/instant-book/overview fields, and nonexistent calendar prices. Numeric predictors with partial missingness use training-fold median imputation; categorical predictors use training-fold most-frequent imputation. [model notebooks]
 
-**Required missingness per-column table:** NOT YET GENERATED in this first draft; will be appended from chunked source counts and cleaned table values.
+**Per-column missingness table:** added in the “Requested Data Audit and Model Details” section, using chunked raw-source counts and the cleaned listing table.
 
 
 ## 4. Exploratory Data Analysis
@@ -766,17 +766,17 @@ Saved detailed permutation importance used for table/figure; values are the save
 Source: data/processed/modeling/*.csv; 15-fold summary calculated from low_value_repeated_group_cv.csv; importance table from value_rating_permutation_importance.csv.
 
 
-**Figure 7.4: Regression predicted versus actual.**
+**Figure 7.2: Regression predicted versus actual.**
 
-![Predicted actual](report_assets/fig7_4_regression_predicted_actual.png)
+![Predicted actual](report_assets/fig7_2_regression_predicted_vs_actual.png)
 
-**Figure 7.2: Permutation importance.**
+**Figure 7.3: Regression permutation importance.**
 
-![Permutation](report_assets/fig7_2_regression_permutation_importance.png)
+![Permutation](report_assets/fig7_3_regression_permutation_importance.png)
 
-**Figure 7.3: Classifier lift by risk decile.**
+**Figure 7.4: Classifier lift by risk decile.**
 
-![Lift by decile](report_assets/fig7_3_classifier_lift_deciles.png)
+![Lift by decile](report_assets/fig7_4_classifier_lift_by_risk_decile.png)
 
 ## 8. Visualization and Dashboard Creation
 
@@ -806,7 +806,7 @@ Use the existing `reports/powerbi_dashboard_guide.md` as the implementation spec
 
 ### Main evidence-backed insight
 
-Among rated listings, the mean overall rating is 4.786 for the one-listing host segment and 4.494 for the 21+ segment. The largest gap among the six sub-scores is Value (4.713 versus 4.416; difference 0.297), followed by Accuracy (4.806 versus 4.558; difference 0.248). These are associations in the snapshot, not effects caused by host size. Room mix, location, price, review selection, and other unmeasured factors may contribute.
+Among rated listings, the mean overall rating is 4.786 for the one-listing host segment and 4.494 for the 21+ segment. The largest gap among the six sub-scores is Value (4.713 versus 4.416; difference 0.296), followed by Accuracy (4.806 versus 4.558; difference 0.248). These are associations in the snapshot, not effects caused by host size. Room mix, location, price, review selection, and other unmeasured factors may contribute.
 
 ### Practical, testable actions
 
@@ -865,6 +865,283 @@ Keep the model advisory and educational. Do not use it for host penalties, delis
 - Features `avg_sentiment_score`, sentiment-proxy coverage, and several calendar/benchmark features exist in the feature table but are excluded from the final model. Model exclusions are documented in the saved split summary. Do not imply sentiment was used by the model.
 - “No exact model errors” is not the same as reliable ranking: holdout ROC-AUC/PR-AUC show moderate separation, while regression R² is low. Use the classifier as a prioritization experiment, not a production-quality predictor.
 - The saved cleaning report notes null host tenure, response/acceptance rates, and other source fields. Their missingness is preserved/reported; do not claim these fields were successfully used as model inputs.
+
+## Requested Data Audit and Model Details
+
+### Raw availability and cleaner lineage for the nine requested fields
+
+The raw listing file was read in chunks. Its nine requested fields have the following availability. For empty fields, “sample values” means no non-null raw values exist. The source cleaner is `scripts/clean_and_align_full_script.ipynb`, **cell 3**; line references below are cell line numbers. The cleaning code defines `keep_cols` at lines 73–88, selects those columns at line 89, and converts the two response-rate columns at lines 110–114.
+
+Relevant source lines (cell 3; line numbers are notebook cell line numbers):
+
+```python
+73 keep_cols = [
+74     "id", "host_id", "host_is_superhost", "host_response_time",
+75     "host_response_rate", "host_acceptance_rate",
+# ...other retained fields...
+86     "instant_bookable", "reviews_per_month",
+87     "estimated_occupancy_l365d", "estimated_revenue_l365d",
+88 ]
+89 listings = listings[[c for c in keep_cols if c in listings.columns]].copy()
+110 for col in ["host_response_rate", "host_acceptance_rate"]:
+111     if col in listings.columns:
+112         listings[col] = listings[col].astype(str).str.replace("%", "", regex=False)
+113         listings[col] = pd.to_numeric(listings[col], errors="coerce")
+```
+
+| Field | Raw non-null | Sample raw values | Finding in `clean_and_align_full_script.ipynb` |
+| --- | ---: | --- | --- |
+| `host_response_time` | 0.0000% | (none; all 92,638 values null) | Empty in raw. Included in keep_cols at line 74; the subset at line 89 cannot restore missing values. Cleaned field remains 100% missing. |
+| `host_response_rate` | 0.0000% | (none; all 92,638 values null) | Empty in raw. Included at line 75; lines 110-114 strip % and coerce to numeric but do not impute. Cleaned field remains 100% missing. |
+| `host_acceptance_rate` | 0.0000% | (none; all 92,638 values null) | Empty in raw. Included at line 75; lines 110-114 strip % and coerce to numeric but do not impute. Cleaned field remains 100% missing. |
+| `instant_bookable` | 0.0000% | (none; all 92,638 values null) | Empty in raw. Included in keep_cols at line 86; remains 100% missing after selection. |
+| `host_since` | 0.0000% | (none; all 92,638 values null) | Empty in raw and not included in keep_cols (lines 73-88); no evidence it was populated then lost. |
+| `license` | 0.0000% | (none; all 92,638 values null) | Empty in raw and not included in keep_cols (lines 73-88); no evidence it was populated then lost. |
+| `neighborhood_overview` | 0.0000% | (none; all 92,638 values null) | Empty in raw and not included in keep_cols (lines 73-88); no evidence it was populated then lost. |
+| `host_is_superhost` | 99.9180% | `t`, `f` | Not empty in raw. Included in keep_cols at line 74 and retained through selection at line 89. Cleaned missingness rises slightly because price-based row filtering changed the population. |
+| `picture_url` | 99.9946% | URL values (example pattern: `https://a0.muscache.com/pictures/...`; identifiers omitted) | Populated in raw, but absent from keep_cols lines 73-88. Dropped at the column-selection operation on line 89; this is a cleaning-stage exclusion. |
+
+**Interpretation:** Six fields are completely empty in the raw snapshot (`host_response_time`, `host_response_rate`, `host_acceptance_rate`, `instant_bookable`, `host_since`, and `license`), plus `neighborhood_overview`. The three values that are not empty are `host_is_superhost` (raw examples `t` and `f`) and `picture_url` (URLs; listing-specific identifiers intentionally omitted). `host_is_superhost` was retained. `picture_url` was nonempty in raw but dropped because it is not in the 37-column `keep_cols` list; the selection statement at cell 3 line 89 performs that exclusion. This is reported as-is; the cleaning code was not changed.
+
+### Full metric file contents
+
+`data/processed/modeling/value_rating_model_metrics.csv`:
+
+```csv
+model,n_train,n_test,mae,rmse,r2
+random_forest_tuned,38315,10004,0.29460224633852433,0.4861034185265675,0.07780847226228271
+median_baseline,38315,10004,0.29535685725709715,0.5241997289751847,-0.0724013736531477
+random_forest,38315,10004,0.2961844264900919,0.4880231744837165,0.07051011362003945
+ridge,38315,10004,0.30093504122840226,0.49623397462267216,0.038970393406910886
+mean_baseline,38315,10004,0.3123056594144281,0.5062514175087052,-0.0002217220113356344
+```
+
+`data/processed/modeling/low_value_classifier_metrics.csv`:
+
+```csv
+model,n_test,low_value_test_prevalence,average_precision_pr_auc,roc_auc,precision_at_top_10pct,recall_at_top_10pct,lift_at_top_10pct,brier_score
+random_forest_classifier,10004,0.2812874850059976,0.4488869298044053,0.7016152843966142,0.4925074925074925,0.1751954513148543,1.750904390563239,0.19357275050980896
+logistic_regression,10004,0.2812874850059976,0.4382777861401858,0.6870174757051224,0.5054945054945055,0.17981520966595593,1.7970742832150082,0.22940932975997025
+prevalence_baseline,10004,0.2812874850059976,0.2812874850059976,0.5,0.2812874850059976,0.1,1.0,0.20223970580963702
+```
+
+`data/processed/modeling/value_rating_split_summary.json` (includes target, model hyperparameters, random seed, feature list, and grouped-CV MAE):
+
+```json
+{
+  "target": "review_scores_value",
+  "target_scale": [
+    0,
+    5
+  ],
+  "rated_rows_used": 48319,
+  "unrated_rows_excluded": 13298,
+  "train_rows": 38315,
+  "test_rows": 10004,
+  "train_hosts": 19567,
+  "test_hosts": 4892,
+  "host_overlap": 0,
+  "missing_host_ids_treated_as_individual_groups": 0,
+  "features": [
+    "neighbourhood_cleansed",
+    "property_type",
+    "room_type",
+    "bathroom_privacy",
+    "accommodates",
+    "bathrooms",
+    "bedrooms",
+    "beds",
+    "price",
+    "listed_price_per_guest_gbp",
+    "host_listing_count",
+    "amenity_count",
+    "amenity_wifi",
+    "amenity_kitchen",
+    "amenity_washer",
+    "amenity_air_conditioning",
+    "amenity_workspace",
+    "amenity_parking",
+    "amenity_pool",
+    "amenity_self_check_in",
+    "description_length_chars",
+    "description_word_count",
+    "minimum_nights",
+    "maximum_nights"
+  ],
+  "excluded_columns": [
+    "all identifiers and exact coordinates",
+    "overall and sub-score rating fields other than the target",
+    "review volume, timing, text, sentiment, and review-derived features",
+    "calendar availability, occupancy, and revenue estimates",
+    "full-sample local price benchmarks and host_portfolio_segment",
+    "host_is_superhost because status may depend on ratings",
+    "host response/acceptance fields and instant_bookable because they are 100% missing in this snapshot"
+  ],
+  "random_state": 42,
+  "random_forest_parameters": {
+    "n_estimators": 150,
+    "max_depth": 24,
+    "min_samples_leaf": 5,
+    "max_features": 0.7,
+    "grouped_cv_mae": 0.2972205500433435
+  },
+  "metrics_file": "data\\processed\\modeling\\value_rating_model_metrics.csv"
+}
+```
+
+### Raw date ranges and engineered calendar/price-band distributions
+
+Dates were recomputed from the raw files in chunks, parsing the `date` column.
+
+| Source | Rows scanned | Valid date values | Minimum date | Maximum date |
+| --- | ---: | ---: | --- | --- |
+| Airbnb `reviews.csv` | 2,241,353 | 2,241,353 | 2009-12-21 | 2026-06-30 |
+| Airbnb `calendar.csv` | 33,871,636 | 33,871,636 | 2026-06-19 | 2027-06-30 |
+
+Calendar proxy statistics from `airbnb_features.csv`:
+
+| Statistic | Value |
+| --- | ---: |
+| Non-missing listing count | 61,617 |
+| Mean | 0.410394 |
+| Median | 0.342466 |
+| Share exactly 0 | 4.8574% (2,993) |
+| Share exactly 1 | 0.0000% (0) |
+
+Listing counts by `calendar_unavailability_band_proxy`:
+
+| Category | Listing count |
+| --- | ---: |
+| higher_unavailability | 25,334 |
+| lower_unavailability | 25,158 |
+| mid_unavailability | 11,125 |
+
+Listing counts by `price_position_vs_local_market`:
+
+| Category | Listing count |
+| --- | ---: |
+| above_local_median | 26,001 |
+| below_local_median | 25,261 |
+| near_local_median | 10,148 |
+| insufficient_local_sample | 207 |
+
+These are descriptive calendar-derived unavailability values, not confirmed bookings or occupancy. Price-position categories are based on the existing engineered feature table; the `insufficient_local_sample` category retains its own 207 listings.
+
+### Per-column missingness: selected raw 37 columns versus cleaned listing table
+
+Raw missingness is counted over all 92,638 raw listing rows. Cleaned missingness is counted over all 61,617 cleaned listing rows. A lower cleaned missing percentage can result from row selection/filtering; it does not mean missing raw values were imputed. A machine-readable copy is in `report_assets/listings_selected_column_missingness.csv`.
+
+| Selected raw column | Raw missing % (n=92,638) | Cleaned column | Cleaned missing % (n=61,617) |
+| --- | ---: | --- | ---: |
+| `id` | 0.0000% | `id` | 0.0000% |
+| `host_id` | 0.0000% | `host_id` | 0.0000% |
+| `host_is_superhost` | 0.0820% | `host_is_superhost` | 0.1071% |
+| `host_response_time` | 100.0000% | `host_response_time` | 100.0000% |
+| `host_response_rate` | 100.0000% | `host_response_rate` | 100.0000% |
+| `host_acceptance_rate` | 100.0000% | `host_acceptance_rate` | 100.0000% |
+| `neighbourhood_cleansed` | 0.0000% | `neighbourhood_cleansed` | 0.0000% |
+| `latitude` | 0.0000% | `latitude` | 0.0000% |
+| `longitude` | 0.0000% | `longitude` | 0.0000% |
+| `property_type` | 0.0000% | `property_type` | 0.0000% |
+| `room_type` | 0.0000% | `room_type` | 0.0000% |
+| `accommodates` | 0.0000% | `accommodates` | 0.0000% |
+| `bathrooms` | 37.6476% | `bathrooms` | 10.4257% |
+| `bedrooms` | 25.8889% | `bedrooms` | 22.0183% |
+| `beds` | 35.0558% | `beds` | 6.6767% |
+| `price` | 32.8137% | `price` | 0.0000% |
+| `minimum_nights` | 0.0054% | `minimum_nights` | 0.0049% |
+| `maximum_nights` | 0.0054% | `maximum_nights` | 0.0049% |
+| `availability_30` | 0.0000% | `availability_30` | 0.0000% |
+| `availability_60` | 0.0000% | `availability_60` | 0.0000% |
+| `availability_90` | 0.0000% | `availability_90` | 0.0000% |
+| `availability_365` | 0.0000% | `availability_365` | 0.0000% |
+| `number_of_reviews` | 0.0000% | `number_of_reviews` | 0.0000% |
+| `number_of_reviews_ltm` | 0.0000% | `number_of_reviews_ltm` | 0.0000% |
+| `first_review` | 23.6696% | `first_review` | 21.5768% |
+| `last_review` | 23.6696% | `last_review` | 21.5768% |
+| `review_scores_rating` | 23.6696% | `review_scores_rating` | 21.5768% |
+| `review_scores_accuracy` | 23.6847% | `review_scores_accuracy` | 21.5801% |
+| `review_scores_cleanliness` | 23.6793% | `review_scores_cleanliness` | 21.5801% |
+| `review_scores_checkin` | 23.7106% | `review_scores_checkin` | 21.5833% |
+| `review_scores_communication` | 23.6901% | `review_scores_communication` | 21.5801% |
+| `review_scores_location` | 23.7117% | `review_scores_location` | 21.5833% |
+| `review_scores_value` | 23.7117% | `review_scores_value` | 21.5817% |
+| `instant_bookable` | 100.0000% | `instant_bookable` | 100.0000% |
+| `reviews_per_month` | 23.6696% | `reviews_per_month` | 21.5768% |
+| `estimated_occupancy_l365d` | 0.0000% | `estimated_occupancy_l365d` | 0.0000% |
+| `estimated_revenue_l365d` | 32.8137% | `estimated_revenue_l365d` | 0.0000% |
+
+### Actual model input lists
+
+The regression and classifier inputs are separate. Both predict `review_scores_value`; the classifier has one additional engineered predictor that is calculated within each training partition using training-only local price medians.
+
+**Regression input features (24):**
+
+1. `neighbourhood_cleansed`
+2. `property_type`
+3. `room_type`
+4. `bathroom_privacy`
+5. `accommodates`
+6. `bathrooms`
+7. `bedrooms`
+8. `beds`
+9. `price`
+10. `listed_price_per_guest_gbp`
+11. `host_listing_count`
+12. `amenity_count`
+13. `amenity_wifi`
+14. `amenity_kitchen`
+15. `amenity_washer`
+16. `amenity_air_conditioning`
+17. `amenity_workspace`
+18. `amenity_parking`
+19. `amenity_pool`
+20. `amenity_self_check_in`
+21. `description_length_chars`
+22. `description_word_count`
+23. `minimum_nights`
+24. `maximum_nights`
+
+**Classifier input features (25):**
+
+1. `neighbourhood_cleansed`
+2. `property_type`
+3. `room_type`
+4. `bathroom_privacy`
+5. `accommodates`
+6. `bathrooms`
+7. `bedrooms`
+8. `beds`
+9. `price`
+10. `listed_price_per_guest_gbp`
+11. `host_listing_count`
+12. `amenity_count`
+13. `amenity_wifi`
+14. `amenity_kitchen`
+15. `amenity_washer`
+16. `amenity_air_conditioning`
+17. `amenity_workspace`
+18. `amenity_parking`
+19. `amenity_pool`
+20. `amenity_self_check_in`
+21. `description_length_chars`
+22. `description_word_count`
+23. `minimum_nights`
+24. `maximum_nights`
+25. `train_fold_price_position_pct`
+
+The classifier's `train_fold_price_position_pct` is generated from training-partition neighbourhood × room-type price medians; categories with fewer than 20 training rows use that partition's global median. It is not a static full-data column passed into the classifier.
+
+### Figure numbering and value-gap rounding
+
+The value-score gap is reported as **0.296 points** throughout this pack. The gap is calculated from unrounded means, so subtracting the displayed three-decimal means can differ by 0.001 due to rounding.
+
+Chapter 7 figures are numbered by order of appearance:
+
+1. Figure 7.1 — regression model comparison (`report_assets/fig7_1_regression_model_comparison.png`)
+2. Figure 7.2 — regression predicted versus actual (`report_assets/fig7_2_regression_predicted_vs_actual.png`)
+3. Figure 7.3 — regression permutation importance (`report_assets/fig7_3_regression_permutation_importance.png`)
+4. Figure 7.4 — classifier lift by risk decile (`report_assets/fig7_4_classifier_lift_by_risk_decile.png`)
 
 ## References (APA-style working list)
 
