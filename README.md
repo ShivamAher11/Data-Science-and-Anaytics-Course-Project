@@ -77,3 +77,7 @@ Install the additional model dependencies if needed:
 ```bash
 pip install scikit-learn joblib
 ```
+
+### Jupyter notebooks
+
+Notebook versions of the Python scripts are also available in `scripts/` for interactive learning. The existing `clean_and_align_full.ipynb` and `eda_visualization.ipynb` are preserved. The cleaning script conversion is named `clean_and_align_full_script.ipynb` to distinguish it from the original cleaning notebook. For scripts that use project-relative paths, run the setup cell first; the cleaning notebook also requires `RAW_DIR` and `OUT_DIR` to match the local raw-data locations.
