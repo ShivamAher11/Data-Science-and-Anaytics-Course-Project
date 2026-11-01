@@ -92,9 +92,11 @@ EDA is in scripts/eda_visualization.ipynb. The notebook explains chart choices a
 
 - **Price by room type — boxplot:** compares median, interquartile spread, and variation while reducing the visual effect of extreme values.
 - **Median price by borough — horizontal ranked bar chart:** makes borough price comparisons readable.
-- **Review score distributions by platform — violin plot:** shows the distribution shape for scores clustered near the top, rather than relying only on averages. Platform caveats apply because grains and periods differ.
-- **Rating distributions by host segment, room type, local price position, and neighbourhood:** show where guest scores vary across operational contexts.
-- **Rating sub-score comparisons:** separate value, accuracy, cleanliness, check-in, communication, and location to make specific service opportunities easier to inspect.
+- **Guest-perceived value by host portfolio segment — boxplot:** shows score spread and group sizes behind the main business insight.
+- **Price versus overall rating — scatter plot:** exploratory price context; it uses overall rating rather than the ML target and cannot show a causal price effect.
+- **Price by room type and median price by borough:** describe market context for the listings.
+- **Calendar unavailability proxy — histogram:** shows unavailable dates, which may include bookings, host blocks, or other reasons.
+- **Cross-platform summary table:** retained as limited context; different record grains and periods prevent a direct platform-quality comparison.
 
 ### Main EDA pattern
 
