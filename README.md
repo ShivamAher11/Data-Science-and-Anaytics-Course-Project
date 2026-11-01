@@ -16,7 +16,7 @@ Raw and processed data files are **not included** in this repository due to GitH
 - Kaggle: https://www.kaggle.com/datasets/jiashenliu/515k-hotel-reviews-data-in-europe
 - Download `Hotel_Reviews.csv` — 515,738 reviews across 6 European cities (London, Paris, Amsterdam, Barcelona, Vienna, Milan)
 - Requires a free Kaggle account to download
-- This project uses **UK/London rows only**, filtered automatically by the cleaning script (`Hotel_Address` containing "United Kingdom")
+- This project uses **London rows only**, filtered explicitly by the cleaning script (`Hotel_Address` containing "London")
 
 ### Folder structure expected by the script
 
@@ -45,7 +45,7 @@ data/
    - `airbnb_calendar_clean.csv` / `airbnb_calendar_agg.csv`
    - `airbnb_reviews_clean.csv` / `airbnb_reviews_agg.csv`
    - `airbnb_master.csv` — listings + calendar + reviews joined, one row per listing
-   - `booking_london_clean.csv` — Booking.com, UK/London only
+   - `booking_london_clean.csv` — Booking.com, London only
    - `comparison_schema.csv` — both platforms mapped to one shared comparison schema
    - `cleaning_report.txt` — full log of every cleaning step, row counts, and dropped/flagged records
 
@@ -56,3 +56,24 @@ data/
 - **Different data grains** — Airbnb is listing-level, Booking.com is review-level; the two datasets are stacked into a shared comparison schema rather than row-merged
 
 Full details on every cleaning step and the reasoning behind each decision are in `reports/Project_Status_Report.docx`.
+
+### Feature engineering
+
+After generating the cleaned outputs, run `python scripts/feature_engineering.py` from this project folder. It reads `data/processed/airbnb_master.csv` and writes the separate `data/processed/airbnb_features.csv` table. Definitions, business reasons, cutoffs, modeling leakage controls, and limitations are documented in [`reports/feature_engineering.md`](reports/feature_engineering.md).
+
+### Statistical analysis
+
+After feature engineering, run `python scripts/statistical_analysis.py`. It compares rating distributions by room type, host portfolio size, local price position, and neighbourhood, with adjusted tests, effect sizes, confidence intervals, and subgroup rating coverage. Methods, results, interpretation, and limitations are in [`reports/statistical_analysis.md`](reports/statistical_analysis.md); machine-readable tables are generated under `data/processed/statistics/`.
+
+### Business insights and recommendations
+
+Run `python scripts/business_insights.py` to summarize rating sub-scores by host portfolio segment and generate evidence-based operational recommendations. The methods, observed gaps, proposed pilot, dashboard implications, and fairness/privacy cautions are in [`reports/business_insights_recommendations.md`](reports/business_insights_recommendations.md).
+
+### Machine-learning model
+
+Run `python scripts/value_rating_model.py` to train and compare mean/median baselines, Ridge regression, and Random Forest for Airbnb guest value ratings. Run `python scripts/value_rating_low_value_classifier.py` for the business-aligned low-value classification experiment. Both require `scikit-learn` and `joblib` in addition to pandas and numpy. They use host-held-out evaluation and write local outputs under the git-ignored `data/processed/modeling/` folder. The feature rationale, evaluation results, subgroup checks, interpretation, and limitations are in [`reports/value_rating_model.md`](reports/value_rating_model.md).
+
+Install the additional model dependencies if needed:
+```bash
+pip install scikit-learn joblib
+```

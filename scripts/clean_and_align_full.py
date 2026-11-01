@@ -4,7 +4,7 @@ DECODING THE STAY ECONOMY
 Full Cleaning & Schema Alignment Pipeline
 Airbnb London (listings.csv + calendar.csv + reviews.csv)
     vs
-Booking.com London (Hotel_Reviews.csv, filtered to UK)
+Booking.com London (Hotel_Reviews.csv, filtered to London addresses)
 ============================================================
 
 HOW TO USE:
@@ -28,7 +28,7 @@ OUTPUTS (created in an "output" subfolder):
     airbnb_reviews_clean.csv      - cleaned reviews, one row per review
     airbnb_reviews_agg.csv        - reviews aggregated to one row per listing (sentiment signal)
     airbnb_master.csv             - listings + calendar_agg + reviews_agg joined, one row per listing
-    booking_london_clean.csv      - cleaned Booking.com reviews, UK/London only
+    booking_london_clean.csv      - cleaned Booking.com reviews, London only
     comparison_schema.csv         - Airbnb master + Booking.com mapped to ONE shared schema
     cleaning_report.txt           - full log of every step, counts, and what was dropped
 
@@ -263,25 +263,25 @@ log(f"4.2  SAVED airbnb_master.csv — {airbnb_master.shape}\n")
 
 
 # ============================================================
-# STEP 5 — CLEAN Hotel_Reviews.csv (Booking.com), filter to UK/London
+# STEP 5 — CLEAN Hotel_Reviews.csv (Booking.com), filter to London
 # ============================================================
 log("=" * 60)
-log("STEP 5: BOOKING.COM Hotel_Reviews.csv — filter to UK/London")
+log("STEP 5: BOOKING.COM Hotel_Reviews.csv — filter to London")
 log("=" * 60)
 
 booking = pd.read_csv(f"{RAW_DIR}/Hotel_Reviews.csv")
 log(f"5.1  Raw shape (all 6 European cities): {booking.shape}")
 
-booking_uk = booking[
-    booking["Hotel_Address"].str.contains("United Kingdom", case=False, na=False)
+booking_london = booking[
+    booking["Hotel_Address"].str.contains(r"\bLondon\b", case=False, na=False, regex=True)
 ].copy()
-log(f"5.2  UK/London rows after filter: {booking_uk.shape}")
+log(f"5.2  London rows after explicit address filter: {booking_london.shape}")
 
-booking_uk["Positive_Review"] = booking_uk["Positive_Review"].fillna("No Positive").str.strip()
-booking_uk["Negative_Review"] = booking_uk["Negative_Review"].fillna("No Negative").str.strip()
+booking_london["Positive_Review"] = booking_london["Positive_Review"].fillna("No Positive").str.strip()
+booking_london["Negative_Review"] = booking_london["Negative_Review"].fillna("No Negative").str.strip()
 log("5.3  Cleaned review text fields")
 
-booking_uk["Review_Date"] = pd.to_datetime(booking_uk["Review_Date"], errors="coerce")
+booking_london["Review_Date"] = pd.to_datetime(booking_london["Review_Date"], errors="coerce")
 log("5.4  Parsed Review_Date")
 
 def extract_tag(tags_str, keywords):
@@ -297,24 +297,24 @@ guest_keywords = ["Couple", "Solo traveler", "Group",
                    "Family with young children", "Family with older children",
                    "Travelers with friends"]
 
-booking_uk["trip_type"] = booking_uk["Tags"].apply(lambda x: extract_tag(x, trip_keywords))
-booking_uk["guest_type"] = booking_uk["Tags"].apply(lambda x: extract_tag(x, guest_keywords))
+booking_london["trip_type"] = booking_london["Tags"].apply(lambda x: extract_tag(x, trip_keywords))
+booking_london["guest_type"] = booking_london["Tags"].apply(lambda x: extract_tag(x, guest_keywords))
 log(f"5.5  Extracted trip_type / guest_type from Tags "
-    f"(trip_type missing: {booking_uk['trip_type'].isna().mean()*100:.1f}%)")
+    f"(trip_type missing: {booking_london['trip_type'].isna().mean()*100:.1f}%)")
 
-before = len(booking_uk)
-booking_uk = booking_uk.drop_duplicates()
-log(f"5.6  Removed {before - len(booking_uk)} exact duplicate rows")
+before = len(booking_london)
+booking_london = booking_london.drop_duplicates()
+log(f"5.6  Removed {before - len(booking_london)} exact duplicate rows")
 
-booking_uk["sentiment_word_diff"] = (
-    booking_uk["Review_Total_Positive_Word_Counts"] - booking_uk["Review_Total_Negative_Word_Counts"]
+booking_london["sentiment_word_diff"] = (
+    booking_london["Review_Total_Positive_Word_Counts"] - booking_london["Review_Total_Negative_Word_Counts"]
 )
-booking_uk["has_positive_text"] = booking_uk["Positive_Review"] != "No Positive"
-booking_uk["has_negative_text"] = booking_uk["Negative_Review"] != "No Negative"
+booking_london["has_positive_text"] = booking_london["Positive_Review"] != "No Positive"
+booking_london["has_negative_text"] = booking_london["Negative_Review"] != "No Negative"
 log("5.7  Built sentiment_word_diff proxy + text-presence flags")
 
-booking_uk.to_csv(f"{OUT_DIR}/booking_london_clean.csv", index=False)
-log(f"5.8  SAVED booking_london_clean.csv — {booking_uk.shape}\n")
+booking_london.to_csv(f"{OUT_DIR}/booking_london_clean.csv", index=False)
+log(f"5.8  SAVED booking_london_clean.csv — {booking_london.shape}\n")
 
 
 # ============================================================
@@ -347,19 +347,19 @@ log("6.1  Mapped Airbnb master table to common schema (now includes calendar + r
 booking_common = pd.DataFrame({
     "platform": "booking",
     "city": "London",
-    "record_id": booking_uk["Hotel_Name"],
+    "record_id": booking_london["Hotel_Name"],
     "property_type": "hotel_room",
     "price_per_night_gbp": np.nan,   # KNOWN GAP: no price field in this dataset
     "guests_capacity": np.nan,       # KNOWN GAP: not available at hotel level
-    "review_score_0to10": booking_uk["Reviewer_Score"],
-    "review_count": booking_uk.groupby("Hotel_Name")["Hotel_Name"].transform("count"),
-    "host_or_provider_id": booking_uk["Hotel_Name"],
+    "review_score_0to10": booking_london["Reviewer_Score"],
+    "review_count": booking_london.groupby("Hotel_Name")["Hotel_Name"].transform("count"),
+    "host_or_provider_id": booking_london["Hotel_Name"],
     "availability_365": np.nan,
     "instant_bookable": np.nan,
     "pct_days_booked": np.nan,       # not applicable for Booking.com in this dataset
     "price_volatility": np.nan,
-    "trip_type": booking_uk["trip_type"],
-    "sentiment_signal": booking_uk["sentiment_word_diff"],
+    "trip_type": booking_london["trip_type"],
+    "sentiment_signal": booking_london["sentiment_word_diff"],
 })
 log("6.2  Mapped Booking.com to common schema")
 

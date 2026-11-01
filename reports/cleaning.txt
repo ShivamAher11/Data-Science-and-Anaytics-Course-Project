@@ -1,0 +1,33 @@
+============================================================
+AIRBNB LONDON — CLEANING
+============================================================
+Raw shape: (92638, 90)
+After column selection: (92638, 37)
+Price missing before drop: 32.8%
+After dropping missing price: (62240, 37)
+Removed 623 extreme price outliers (outside 30-2008 GBP). New shape: (61617, 37)
+Removed 0 duplicate listing IDs
+review_scores_rating is on a 0-5 scale in this file (not 0-100) — noted for schema alignment.
+Listings with zero reviews: 13295 (21.6%)
+Saved airbnb_london_clean.csv — final shape (61617, 38)
+
+============================================================
+BOOKING.COM — FILTER TO UK/LONDON + CLEANING
+============================================================
+Raw shape (all 6 cities): (515738, 17)
+London rows after filter: (262301, 17)
+trip_type extracted, missing: 3.5%
+guest_type extracted, missing: 0.0%
+Removed 3 exact duplicate rows
+Saved booking_london_clean.csv — final shape (262298, 22)
+
+============================================================
+SCHEMA ALIGNMENT
+============================================================
+Comparison schema saved — 323915 total rows (61617 Airbnb, 262298 Booking.com)
+
+Field coverage by platform (% non-null):
+           city  record_id  property_type  price_per_night_gbp  guests_capacity  review_score_0to10  review_count  host_or_provider_id  availability_365  instant_bookable  trip_type  sentiment_signal
+platform                                                                                                                                                                                               
+airbnb    100.0      100.0          100.0                100.0            100.0                78.4         100.0                100.0             100.0               0.0        0.0               0.0
+booking   100.0      100.0          100.0                  0.0              0.0               100.0         100.0                100.0               0.0               0.0       96.5             100.0
