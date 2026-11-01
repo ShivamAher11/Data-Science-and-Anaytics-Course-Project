@@ -1,75 +1,54 @@
-# A/B Test Proposal: Listing Accuracy and Value Messaging Checklist
+# Real A/B Test: Clear Value Messaging on a Fictional Listing
 
-## Why run this test?
+## What this test can answer
 
-The project’s observational Airbnb analysis found that value ratings differ across host portfolio segments. The reported mean gap between one-listing and 21+ listing hosts is 0.296 points; accuracy is another relatively large sub-score gap (0.248 points). These are associations, not evidence that host portfolio size causes lower ratings or that a checklist will improve them.
+The project’s Airbnb analysis found observational differences in guest value and accuracy ratings. Those patterns do not show that wording causes better ratings. A simple randomized survey experiment can test a narrower, actionable question:
 
-A prospective randomized test can answer a useful business question that the current snapshot cannot: **does offering a listing accuracy and value-messaging checklist improve guests’ later perceived-value ratings compared with usual practice?** If effective, the checklist could give hosts a low-cost way to check that photos, amenities, capacity, fees, rules, and location details match the stay and that guests can understand what is included for the price. It does not prescribe a price change.
+> Does presenting the same listing facts as a clear “what is included for the total price” summary change prospective guests’ perceived value compared with a plain paragraph?
 
-The Python notebook at [`scripts/ab_test_design.ipynb`](../scripts/ab_test_design.ipynb) provides sample-size scenarios based on historical host-level rating variation, a host-level randomization function for a consented roster, and an analysis template for future outcome data. The current data has no randomized assignment or post-checklist outcomes, so no A/B test result is claimed.
+This is a **real A/B experiment** once consenting people are randomly assigned to see one version and provide responses. It tests listing presentation with survey participants. It does not test an actual Airbnb host intervention or actual booking/review outcomes.
 
-## Proposed experiment
+## The two versions
 
-### Hypothesis
+Use the same facts in both versions. Do not show both to one person.
 
-Participating hosts offered the checklist will have a greater average increase in guest value ratings during follow-up than participating control hosts who continue usual practice. Rating coverage is a key guardrail because scores are observed only when guests leave reviews.
+**A — Control (plain presentation)**
 
-### Randomization and groups
+> One-bedroom apartment in Stratford for two guests. Wi-Fi, kitchen, and washing machine. Stratford station is a 15-minute walk away. £120 total per night, including cleaning and service fees.
 
-- **Recruitment:** invite eligible hosts to opt in; do not enroll or rank hosts automatically.
-- **Assignment unit:** host. Assigning all participating listings from a host to the same arm reduces spillover between that host’s listings.
-- **Treatment:** checklist and brief instructions for reviewing listing accuracy and value information across participating listings.
-- **Control:** usual practice during the test; offer the checklist afterward if practical.
-- **Balance:** randomize within host portfolio segments (and consider room/borough only if the recruited sample can support those strata). Record the seed and assignment protocol before launch.
+**B — Treatment (clear value summary)**
 
-### Timing and outcomes
+> £120 total per night, including cleaning and service fees. Your stay includes the entire one-bedroom apartment for two guests, Wi-Fi, kitchen, and washing machine. Stratford station is a 15-minute walk away.
 
-Use a defined pre-period and a comparable follow-up period, provisionally 90 days each. Confirm that duration against recruitment and review volume before launch. Allow for guests to submit reviews after a stay and set a final data-freeze date.
+The treatment changes the order and emphasis, not the price or property facts. That isolates whether clear presentation of inclusions affects perceived value.
 
-- **Primary outcome:** host-level average change in listing-level value score from pre-period to follow-up, measured on the platform’s 0–5 scale. The notebook gives each host equal weight so hosts with many listings do not dominate the treatment estimate.
-- **Coverage guardrail:** share of all randomized hosts with at least one follow-up value rating, plus review counts and listing rating coverage by arm.
-- **Secondary outcome:** change in accuracy score, if consistently available in both periods.
-- **Do not:** label an unreviewed listing as low value or treat missing follow-up ratings as a zero.
+## How to carry it out
 
-The primary score comparison is conditional on follow-up ratings being observed. If the checklist changes whether guests leave reviews, this can create selection bias. Therefore report coverage by arm and interpret rating effects cautiously when coverage differs.
+1. Recruit up to 100 consenting adults (for example, classmates). Explain the short survey and collect no names or emails.
+2. Open [`scripts/ab_test_design.ipynb`](../scripts/ab_test_design.ipynb) and run the setup and assignment cells once. They create `data/ab_test_randomization_schedule.csv` with balanced anonymous participant codes. The `data/` folder is Git-ignored; keep the schedule private and do not regenerate it after recruitment starts.
+3. Give each participant the next unused code and show only the A or B version assigned to that code. In a paper survey, use the assigned card; online, use the corresponding A/B form or link.
+4. Ask all participants the same questions: perceived value (primary, 1–5), booking consideration (secondary, 1–5), and whether they correctly recall the £120 all-in nightly price.
+5. Enter each response in `data/ab_test_survey_responses.csv` using `participant_code`, `perceived_value`, `booking_intent`, and `price_check_correct`.
+6. Run the notebook’s analysis cell. It joins responses to the pre-generated assignment, checks the data, compares the average ratings, and reports a confidence interval, Welch test, Mann–Whitney sensitivity test, response rates, and price recall by condition.
 
-## Sample size and analysis plan
+The notebook does **not** fabricate survey responses. Until responses are collected, it will report that there is no A/B test result yet.
 
-The notebook calculates approximate hosts required per arm for illustrative differences of 0.10, 0.15, and 0.20 rating points. It uses the historical distribution of host-level rating means for a rough variance estimate, two-sided alpha 0.05, 80% power, equal allocation, and an explicit 20% attrition assumption. These are planning scenarios, **not** a selected business threshold or a substitute for a statistician’s final power analysis. Stakeholders should choose the smallest worthwhile improvement and finalize sample size before assignment or outcome review.
+## Sample-size context
 
-Analyze by original assignment (intention to treat). Aggregate listing outcomes to the host first, compare host-level change between treatment and control using a Welch two-sample comparison, and report the estimate with a 95% confidence interval and p-value. Report the coverage difference with uncertainty as well. Keep all randomized hosts/listings in the coverage denominator. If there are too few participating hosts, few follow-up reviews, or wide confidence intervals, treat the pilot as inconclusive and extend or redesign it rather than claiming success or no effect.
+A target of 100 people gives approximately 50 per arm. Assuming an outcome standard deviation near 1 point on the 1–5 scale, that is enough for roughly 80% power only for a relatively large difference of about 0.56 points at a two-sided 5% significance level. This is approximate; small effects may be missed. If fewer people participate, call it an exploratory pilot and focus on the estimated difference and confidence interval rather than a binary “success/failure.”
 
-## Prospective data required
+## Why it is useful to the business
 
-Create one row per randomized participating listing in `data/ab_test_listing_outcomes.csv` with:
+If version B earns higher perceived-value ratings and price recall remains strong, the result suggests that **clearer communication of what the total price includes may help prospective guests understand value**. A host or marketplace could test this style of presentation more broadly. If there is little or uncertain difference, the business avoids assuming that a wording change will help. Either result provides more useful evidence than simply comparing existing host groups.
 
-| Field | Required content |
-| --- | --- |
-| `host_id` | Private randomization cluster key |
-| `listing_id` | Private listing key |
-| `arm` | `treatment` or `control` assigned to the host |
-| `baseline_value_score` | Pre-period listing mean, if observed |
-| `post_value_score` | Follow-up mean of new guest value scores; null if none |
-| `post_review_count` | Number of follow-up scores used |
+## Limits and safeguards
 
-Use the notebook’s validation checks to ensure each host appears in only one arm and scores are on the 0–5 scale. Do not store raw reviewer text or guest identifiers in this analysis file.
+- Random assignment supports a causal claim only about the wording shown to these respondents.
+- Participants are a convenience sample, not a representative sample of Airbnb guests.
+- Perceived value and stated booking interest are not actual purchases, stays, or guest ratings.
+- Keep assignment and response files private. Publish aggregate results only.
+- Do not use the test to rank or penalize hosts, infer service quality, or justify price increases.
 
-## Business insight the experiment could provide
+## Current status
 
-The current project can identify groups and listing profiles associated with lower perceived value, but it cannot tell an operator what action will improve ratings. This experiment tests one low-cost, voluntary action. A positive, sufficiently precise result would support offering the checklist more broadly and measuring adoption. A null or imprecise result would indicate that the checklist may need revision, a longer follow-up, or more participants. Either result helps prevent the business from spending effort on an intervention that has not been evaluated.
-
-The test would not establish why a guest gave a particular rating, prove that all listings benefit, measure objective quality, or justify host penalties or automated pricing. Results should be reported in aggregate, with rating coverage and subgroup checks, and should not be used for punitive decisions.
-
-## Ethics and privacy safeguards
-
-- Participation is voluntary; communicate the purpose, what is collected, and how results are used.
-- Keep assignment rosters and row-level host/listing outcomes private and outside public exports.
-- Publish only aggregated outcomes; suppress small cells and avoid maps or filters that identify a property.
-- Do not treat neighbourhood, host size, missing ratings, or model flags as evidence of poor conduct.
-- Review subgroup coverage and treatment access so small or less-reviewed host groups are not overlooked.
-- The project snapshot is observational and historical. The A/B test begins only after prospective randomization and new outcomes are collected.
-
-## Files
-
-- Notebook: [`scripts/ab_test_design.ipynb`](../scripts/ab_test_design.ipynb)
-- This protocol: `reports/ab_test_design.md`
+The notebook and stimuli are ready, but **the real experiment is not complete until participants are recruited, assigned, shown a version, and their actual responses are entered**. No synthetic treatment effect or fabricated test result is used.
