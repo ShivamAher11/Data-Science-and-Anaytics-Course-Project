@@ -31,7 +31,7 @@ The treatment changes the order and emphasis, not the price or property facts. T
 5. Enter each response in `data/ab_test_survey_responses.csv` using `participant_code`, `perceived_value`, `booking_intent`, and `price_check_correct`.
 6. Run the notebook’s analysis cell. It joins responses to the pre-generated assignment, checks the data, compares the average ratings, and reports a confidence interval, Welch test, Mann–Whitney sensitivity test, response rates, and price recall by condition.
 
-The notebook does **not** fabricate survey responses. Until responses are collected, it will report that there is no A/B test result yet.
+The notebook includes an explicitly synthetic dataset for a complete analysis walkthrough. If the real response CSV exists, real responses take precedence; otherwise the synthetic results are labeled and kept separate from real data. Synthetic findings are not evidence about people or Airbnb guests.
 
 ## Sample-size context
 
@@ -49,6 +49,25 @@ If version B earns higher perceived-value ratings and price recall remains stron
 - Keep assignment and response files private. Publish aggregate results only.
 - Do not use the test to rank or penalize hosts, infer service quality, or justify price increases.
 
+
+## Synthetic demonstration (not real participant evidence)
+
+The notebook can generate 100 artificial responses on a separate synthetic assignment schedule and run the same analysis pipeline. The demonstration inserts an assumed +0.50 latent shift in perceived value, +0.25 in booking intent, and higher assumed price-recall probability in version B. These assumptions are visible in the notebook code; the generated response CSV and assignment schedule are separate from the real-study files. Do not cite the synthetic estimates as a measured business effect.
+
+
+## Completed synthetic A/B analysis (for learning only)
+
+The notebook generated 100 synthetic respondents on a separate balanced random assignment (50 per arm, seed 2027) and ran the planned comparison. Synthetic outcomes were generated from declared assumptions: perceived-value latent mean 3.0 in A and 3.5 in B, booking-intent latent mean 3.0 in A and 3.25 in B, standard deviation 1.0, scores rounded/clipped to 1–5, and price recall probabilities of 70% in A and 85% in B. These assumed effects were deliberately inserted; they are not observations from people.
+
+| Synthetic result | A control | B treatment | B minus A / test result |
+| --- | ---: | ---: | --- |
+| Participants | 50 | 50 | 100 total |
+| Mean perceived value (1–5) | 2.82 | 3.34 | +0.52; 95% CI 0.106 to 0.934; Welch p=0.0143; Mann–Whitney p=0.0141 |
+| Mean booking intent (1–5) | 3.00 | 3.56 | +0.56; 95% CI 0.175 to 0.945; Welch p=0.0048; Mann–Whitney p=0.0104 |
+| Correct all-in price recall | 70% | 78% | +8 percentage points (descriptive) |
+
+This confirms that the notebook can generate randomized arms, analyze the survey outcomes, and report uncertainty. The apparent positive effects are an expected consequence of the synthetic values chosen in the generator. They are **not a business finding** and must not be presented as evidence that clearer wording improves real guests’ value ratings. The synthetic files are `data/ab_test_randomization_schedule_synthetic.csv` and `data/ab_test_survey_responses_synthetic.csv`; they are separate from the actual participant schedule and real response path.
+
 ## Current status
 
-The notebook and stimuli are ready, but **the real experiment is not complete until participants are recruited, assigned, shown a version, and their actual responses are entered**. No synthetic treatment effect or fabricated test result is used.
+The real experiment is not complete until participants are recruited, assigned, shown a version, and their actual responses are entered. A separate synthetic demonstration can be run now for learning, but it is not a real experiment result.
