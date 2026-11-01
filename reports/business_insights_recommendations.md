@@ -102,4 +102,4 @@ A decision-focused dashboard should let a host or analyst filter by room type, n
 
 ## Reproducibility
 
-Run `python scripts/business_insights.py`. It writes this report and two CSV tables under `data/processed/statistics/`: `subscore_host_segment_summary.csv` and `subscore_host_segment_tests.csv`.
+Open `scripts/business_insights.ipynb` in Jupyter and run its cells in order. It writes this report and two CSV tables under `data/processed/statistics/`: `subscore_host_segment_summary.csv` and `subscore_host_segment_tests.csv`.

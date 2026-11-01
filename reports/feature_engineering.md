@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This step turns the cleaned, one-row-per-listing Airbnb master table into a separate analysis table with features that support practical host and marketplace questions. It does not change the source master file and does not add generated records. The companion script is `scripts/feature_engineering.py`; its output is `data/processed/airbnb_features.csv`.
+This step turns the cleaned, one-row-per-listing Airbnb master table into a separate analysis table with features that support practical host and marketplace questions. It does not change the source master file and does not add generated records. The companion notebook is `scripts/feature_engineering.ipynb`; its output is `data/processed/airbnb_features.csv`.
 
 The features are designed to help answer:
 
@@ -16,13 +16,13 @@ These are descriptive and predictive features. They do not establish that changi
 
 ## Reproduce the feature table
 
-From the project folder, run:
+Open the notebook in Jupyter and run its cells in order:
 
 ```bash
-python scripts/feature_engineering.py
+scripts/feature_engineering.ipynb
 ```
 
-The script reads `data/processed/airbnb_master.csv`, writes `data/processed/airbnb_features.csv`, and leaves the input unchanged. It requires pandas and numpy, which are already used by the cleaning pipeline. The table currently contains 61,617 listing rows. Processed data is git-ignored, so the CSV is a local generated artifact; the script and this explanation are the reproducible project deliverables.
+The notebook reads `data/processed/airbnb_master.csv`, writes `data/processed/airbnb_features.csv`, and leaves the input unchanged. It requires pandas and numpy, which are already used by the cleaning pipeline. The table currently contains 61,617 listing rows. Processed data is git-ignored, so the CSV is a local generated artifact; the script and this explanation are the reproducible project deliverables.
 
 ## Features created
 

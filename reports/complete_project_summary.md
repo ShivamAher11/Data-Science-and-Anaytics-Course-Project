@@ -58,7 +58,7 @@ Airbnb is listing-level while Booking.com is review-level. Booking.com has no eq
 
 ## 3. Data cleaning and preprocessing
 
-The workflow is implemented in scripts/clean_and_align_full.py; the cleaning log is reports/cleaning.txt.
+The workflow is implemented in scripts/clean_and_align_full_script.ipynb; the cleaning log is reports/cleaning.txt.
 
 ### Airbnb
 
@@ -113,7 +113,7 @@ Scores are bounded and concentrated near 5, so distributions, medians, counts, a
 
 ## 5. Feature engineering
 
-Feature engineering is implemented in scripts/feature_engineering.py. Full calculations and reasons are in reports/feature_engineering.md. Output: data/processed/airbnb_features.csv, 61,617 one-listing rows.
+Feature engineering is implemented in scripts/feature_engineering.ipynb. Full calculations and reasons are in reports/feature_engineering.md. Output: data/processed/airbnb_features.csv, 61,617 one-listing rows.
 
 | Feature | Purpose | Limitation |
 |---|---|---|
@@ -132,7 +132,7 @@ Model features also include listing attributes such as neighbourhood, room/prope
 
 ## 6. Statistical analysis
 
-Implemented in scripts/statistical_analysis.py and reported in reports/statistical_analysis.md.
+Implemented in scripts/statistical_analysis.ipynb and reported in reports/statistical_analysis.md.
 
 ### Method
 
@@ -275,15 +275,15 @@ Host grouping reduces leakage from a host’s multiple listings; training-only p
 
 ## 11. Reproducibility and project files
 
-### Main scripts and reports
+### Main notebooks and reports
 
-- Cleaning/alignment: scripts/clean_and_align_full.py
+- Cleaning/alignment: scripts/clean_and_align_full_script.ipynb
 - EDA notebook: scripts/eda_visualization.ipynb
-- Feature engineering: scripts/feature_engineering.py
-- Statistical analysis: scripts/statistical_analysis.py
-- Business analysis: scripts/business_insights.py
-- Value regression: scripts/value_rating_model.py
-- Low-value classification and repeated grouped validation: scripts/value_rating_low_value_classifier.py
+- Feature engineering: scripts/feature_engineering.ipynb
+- Statistical analysis: scripts/statistical_analysis.ipynb
+- Business analysis: scripts/business_insights.ipynb
+- Value regression: scripts/value_rating_model.ipynb
+- Low-value classification and repeated grouped validation: scripts/value_rating_low_value_classifier.ipynb
 - Feature rationale: reports/feature_engineering.md
 - Statistical results: reports/statistical_analysis.md
 - Business recommendations: reports/business_insights_recommendations.md
@@ -295,10 +295,10 @@ Host grouping reduces leakage from a host’s multiple listings; training-only p
 ### Reproduction sequence
 
 1. Place source datasets in local raw-data locations described in README.md.
-2. Run python scripts/clean_and_align_full.py.
-3. Run python scripts/feature_engineering.py.
-4. Run python scripts/statistical_analysis.py and python scripts/business_insights.py.
-5. Run python scripts/value_rating_model.py for regression and python scripts/value_rating_low_value_classifier.py for classification and repeated validation.
+2. Open scripts/clean_and_align_full_script.ipynb in Jupyter and run all cells.
+3. Open scripts/feature_engineering.ipynb in Jupyter and run all cells.
+4. Open scripts/statistical_analysis.ipynb and scripts/business_insights.ipynb in Jupyter and run all cells.
+5. Open scripts/value_rating_model.ipynb for regression and scripts/value_rating_low_value_classifier.ipynb for classification and repeated validation; run all cells.
 6. Use reports/powerbi_dashboard_guide.md to build the Power BI report from processed features.
 
 Processed data and model artifacts are local generated files and git-ignored. Raw data is not bundled; refreshed data can change row counts and results.

@@ -36,10 +36,7 @@ data/
 ```bash
    pip install pandas numpy
 ```
-3. Run the cleaning pipeline from the project root:
-```bash
-   python scripts/clean_and_align_full.py
-```
+3. Open `scripts/clean_and_align_full_script.ipynb` in Jupyter and choose **Run All**. Its configuration reads from `data/raw` and writes to `data/processed`.
 4. Cleaned outputs will be generated in `data/processed/`:
    - `airbnb_listings_clean.csv`
    - `airbnb_calendar_clean.csv` / `airbnb_calendar_agg.csv`
@@ -59,19 +56,19 @@ Full details on every cleaning step and the reasoning behind each decision are i
 
 ### Feature engineering
 
-After generating the cleaned outputs, run `python scripts/feature_engineering.py` from this project folder. It reads `data/processed/airbnb_master.csv` and writes the separate `data/processed/airbnb_features.csv` table. Definitions, business reasons, cutoffs, modeling leakage controls, and limitations are documented in [`reports/feature_engineering.md`](reports/feature_engineering.md).
+After generating the cleaned outputs, open `scripts/feature_engineering.ipynb` in Jupyter and choose **Run All**. It reads `data/processed/airbnb_master.csv` and writes `data/processed/airbnb_features.csv`. Definitions, business reasons, cutoffs, modeling leakage controls, and limitations are documented in [`reports/feature_engineering.md`](reports/feature_engineering.md).
 
 ### Statistical analysis
 
-After feature engineering, run `python scripts/statistical_analysis.py`. It compares rating distributions by room type, host portfolio size, local price position, and neighbourhood, with adjusted tests, effect sizes, confidence intervals, and subgroup rating coverage. Methods, results, interpretation, and limitations are in [`reports/statistical_analysis.md`](reports/statistical_analysis.md); machine-readable tables are generated under `data/processed/statistics/`.
+After feature engineering, open `scripts/statistical_analysis.ipynb` in Jupyter and choose **Run All**. It compares rating distributions by room type, host portfolio size, local price position, and neighbourhood, with adjusted tests, effect sizes, confidence intervals, and subgroup rating coverage. Methods, results, interpretation, and limitations are in [`reports/statistical_analysis.md`](reports/statistical_analysis.md); machine-readable tables are generated under `data/processed/statistics/`.
 
 ### Business insights and recommendations
 
-Run `python scripts/business_insights.py` to summarize rating sub-scores by host portfolio segment and generate evidence-based operational recommendations. The methods, observed gaps, proposed pilot, dashboard implications, and fairness/privacy cautions are in [`reports/business_insights_recommendations.md`](reports/business_insights_recommendations.md).
+Open `scripts/business_insights.ipynb` in Jupyter and choose **Run All** to summarize rating sub-scores by host portfolio segment and regenerate evidence-based operational recommendations. The methods, observed gaps, proposed pilot, dashboard implications, and fairness/privacy cautions are in [`reports/business_insights_recommendations.md`](reports/business_insights_recommendations.md).
 
 ### Machine-learning model
 
-Run `python scripts/value_rating_model.py` to train and compare mean/median baselines, Ridge regression, and Random Forest for Airbnb guest value ratings. Run `python scripts/value_rating_low_value_classifier.py` for the business-aligned low-value classification experiment. Both require `scikit-learn` and `joblib` in addition to pandas and numpy. They use host-held-out evaluation and write local outputs under the git-ignored `data/processed/modeling/` folder. The feature rationale, evaluation results, subgroup checks, interpretation, and limitations are in [`reports/value_rating_model.md`](reports/value_rating_model.md).
+Open `scripts/value_rating_model.ipynb` to train and compare mean/median baselines, Ridge regression, and Random Forest for Airbnb guest value ratings. Open `scripts/value_rating_low_value_classifier.ipynb` for the business-aligned classification experiment. Run each notebook's cells in order. Both require `scikit-learn` and `joblib` in addition to pandas and numpy. They use host-held-out evaluation and write local outputs under the git-ignored `data/processed/modeling/` folder. The feature rationale, evaluation results, subgroup checks, interpretation, and limitations are in [`reports/value_rating_model.md`](reports/value_rating_model.md).
 
 Install the additional model dependencies if needed:
 ```bash
@@ -80,4 +77,4 @@ pip install scikit-learn joblib
 
 ### Jupyter notebooks
 
-Notebook versions of the Python scripts are also available in `scripts/` for interactive learning. The existing `clean_and_align_full.ipynb` and `eda_visualization.ipynb` are preserved. The cleaning script conversion is named `clean_and_align_full_script.ipynb` to distinguish it from the original cleaning notebook. For scripts that use project-relative paths, run the setup cell first; the cleaning notebook also requires `RAW_DIR` and `OUT_DIR` to match the local raw-data locations.
+The project code is provided as Jupyter notebooks in `scripts/`. The original `clean_and_align_full.ipynb` and `eda_visualization.ipynb` are preserved. `clean_and_align_full_script.ipynb` is the notebook version of the cleaning pipeline. Open the relevant notebook, review its setup and data-path cells, then choose **Run All**. Cleaning requires the raw CSV files in `data/raw`; later notebooks read and write processed files in `data/processed`.

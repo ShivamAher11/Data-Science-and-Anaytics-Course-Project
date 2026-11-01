@@ -8,13 +8,13 @@ The model is an exploratory diagnostic. It does not measure objective quality, s
 
 ## Reproduction
 
-From the project root, run:
+Open the notebook in Jupyter and run its cells in order:
 
 ```bash
-python scripts/value_rating_model.py
+scripts/value_rating_model.ipynb
 ```
 
-The script reads `data/processed/airbnb_features.csv`. It writes the trained Random Forest artifact, metrics, subgroup errors, permutation importance, and split summary under the git-ignored `data/processed/modeling/` folder. It uses pandas, numpy, scikit-learn, and joblib.
+The notebook reads `data/processed/airbnb_features.csv`. It writes the trained Random Forest artifact, metrics, subgroup errors, permutation importance, and split summary under the git-ignored `data/processed/modeling/` folder. It uses pandas, numpy, scikit-learn, and joblib.
 
 ## Steps performed and reasons
 
@@ -174,6 +174,6 @@ Do not recommend price changes from this model. Do not rank, penalize, or delist
 - `data/processed/modeling/value_rating_subgroup_errors.csv` — aggregate Random Forest holdout errors by group.
 - `data/processed/modeling/value_rating_permutation_importance.csv` — Random Forest feature reliance summary.
 - `data/processed/modeling/value_rating_split_summary.json` — split sizes, features, exclusions, and fixed settings.
-- `scripts/value_rating_low_value_classifier.py` — business-aligned lower-quartile classification experiment with training-only local price context.
+- `scripts/value_rating_low_value_classifier.ipynb` — business-aligned lower-quartile classification experiment with training-only local price context.
 - `data/processed/modeling/low_value_classifier_metrics.csv` and `low_value_classifier_subgroups.csv` — holdout ranking and subgroup summaries.
 - `data/processed/modeling/low_value_repeated_group_cv.csv` and `low_value_repeated_group_cv_summary.csv` — 15-fold repeated host-group validation results.

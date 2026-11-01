@@ -165,4 +165,4 @@ A useful operational next step is to inspect rating sub-scores (accuracy, cleanl
 
 ## Reproducibility and output files
 
-Run `python scripts/statistical_analysis.py` from any directory. It regenerates this report and these machine-readable summaries under `data/processed/statistics/`: `rating_group_summaries.csv`, `rating_omnibus_tests.csv`, `rating_pairwise_tests.csv`, and `rating_coverage_by_group.csv`.
+Open `scripts/statistical_analysis.ipynb` in Jupyter and run its cells in order. It regenerates this report and these machine-readable summaries under `data/processed/statistics/`: `rating_group_summaries.csv`, `rating_omnibus_tests.csv`, `rating_pairwise_tests.csv`, and `rating_coverage_by_group.csv`.
